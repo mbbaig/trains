@@ -1,0 +1,42 @@
+[
+    {
+        "type": "distance",
+        "task": "abc"
+    },
+    {
+        "type": "distance",
+        "task": "ad"
+    },
+    {
+        "type": "distance",
+        "task": "adc"
+    },
+    {
+        "type": "distance",
+        "task": "aebcd"
+    },
+    {
+        "type": "distance",
+        "task": "aed"
+    },
+    {
+        "type": "hopCheck",
+        "task": "cc3"
+    },
+    {
+        "type": "hopCheck",
+        "task": "ac4"
+    },
+    {
+        "type": "lengthCheck",
+        "task": "ac"
+    },
+    {
+        "type": "lengthCheck",
+        "task": "bb"
+    },
+    {
+        "type": "numberOfRoutes",
+        "task": "cc"
+    }
+]
