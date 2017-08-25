@@ -8,62 +8,47 @@ function splitTask(task) {
     };
 }
 
-function compareDuplicates(array) {
-    const sortedArray = array.slice().sort();
-
-    if (sortedArray.length > 1) {
-        // console.log('conparing', sortedArray);
-        for (let index = 0; index < sortedArray.length; index += 1) {
-            // console.log('1', sortedArray[index + 1]);
-            // console.log('0', sortedArray[index]);
-            if (sortedArray[index] &&
-                sortedArray[index + 1] &&
-                sortedArray[index + 1][0] === sortedArray[index][0] &&
-                sortedArray[index + 1][1] === sortedArray[index][1]) {
-                return false;
-            }
-        }
+function buildTree(node, graph, endChar, preventInifinite) {
+    if (preventInifinite === 0) {
+        return null;
     }
-    return true;
-}
-
-function buildTree(startNode, nodes, startChar, endChar, graph, interm) {
-    const intermmediateNodes = graph.filter(interNode => interNode.charAt(0) === startNode.charAt(1));
-    interm.push(intermmediateNodes);
-    if (!compareDuplicates(interm)) {
-        interm = [];
-        nodes.push([startNode]);
-        return;
+    if (node.charAt(1) === endChar.toUpperCase()) {
+        return { node };
     }
-    console.log('inter', intermmediateNodes);
-    intermmediateNodes.forEach((interNode) => {
-        if (interNode.charAt(1) === endChar.toUpperCase()
-            && interNode.charAt(0) === startNode.charAt(1).toUpperCase()) {
-            nodes.push([startNode, interNode]);
-        } else {
-            buildTree(interNode, nodes, startChar, endChar, graph, interm);
-        }
-    }, this);
-    console.log(nodes);
-    nodes.forEach((node, index) => {
-        if (node.every(value => value.charAt(0) !== startChar.toUpperCase())) {
-            node.unshift(startNode);
-        }
-    }, this);
-    return nodes;
+    const filtered = graph.filter(value => value.charAt(0) === node.charAt(1));
+
+    return filtered.reduce((accum, currVal, index) => {
+        accum[`${node}${index}`] = buildTree(currVal, graph, endChar, preventInifinite - 1);
+        return accum;
+    }, {});
 }
 
 function gatherNodes(startChar, endChar, graph) {
     const startNodes = graph.filter(node => node.charAt(0) === startChar.toUpperCase());
-    console.log('start', startNodes);
-    let tree = [];
+    const tree = {};
+
     startNodes.forEach((node) => {
-        tree = buildTree(node, tree, startChar, endChar, graph, []);
-        // tree.unshift(node);
+        Object.assign(tree, buildTree(node, graph, endChar, Math.ceil(graph.length / 2)));
     }, this);
-    console.log(tree);
-    const endNodes = graph.filter(node => node.charAt(1) === endChar.toUpperCase());
-    console.log('end', endNodes);
+
+    return Object.entries(tree);
+}
+
+function getShortestLength(entries) {
+    let length = 0;
+    entries.forEach((entry) => {
+        length = entry.reduce((accum, element, index) => {
+            console.log(element);
+            if (typeof element === 'object' && element.node) {
+                accum += parseInt(element.node.charAt(2), 10);
+                return accum;
+            } else if (typeof element === 'string') {
+                accum += parseInt(element.charAt(2), 10);
+                console.log(accum);
+            }
+        }, 0);
+    }, this);
+    return length;
 }
 
 (async () => {
@@ -73,10 +58,10 @@ function gatherNodes(startChar, endChar, graph) {
         const routeRequirements = splitTask(task);
         const startChar = routeRequirements.startingPoint;
         const endChar = routeRequirements.endingPoint;
+        const entries = gatherNodes(startChar, endChar, graph);
+        const length = getShortestLength(entries);
 
-        gatherNodes(startChar, endChar, graph);
-
-        // libWritter.writeMessage(`Shortest route from ${task}: ${length}`);
+        libWritter.writeMessage(`Shortest route from ${task}: ${length}`);
     } catch (error) {
         libWritter.writeError(error);
     }
