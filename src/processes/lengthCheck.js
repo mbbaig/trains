@@ -16,9 +16,12 @@ function buildTree(node, graph, endChar, preventInifinite) {
         return { node };
     }
     const filtered = graph.filter(value => value.charAt(0) === node.charAt(1));
-
+    let obj;
     return filtered.reduce((accum, currVal, index) => {
-        accum[`${node}${index}`] = buildTree(currVal, graph, endChar, preventInifinite - 1);
+        obj = buildTree(currVal, graph, endChar, preventInifinite - 1);
+        if (obj) {
+            accum[`${node}${index}`] = obj;
+        }
         return accum;
     }, {});
 }
@@ -28,27 +31,34 @@ function gatherNodes(startChar, endChar, graph) {
     const tree = {};
 
     startNodes.forEach((node) => {
-        Object.assign(tree, buildTree(node, graph, endChar, Math.ceil(graph.length / 2)));
+        Object.assign(tree, buildTree(node, graph, endChar, Math.floor(graph.length / 2)));
     }, this);
 
-    return Object.entries(tree);
+    return tree;
 }
 
-function getShortestLength(entries) {
-    let length = 0;
-    entries.forEach((entry) => {
-        length = entry.reduce((accum, element, index) => {
-            console.log(element);
-            if (typeof element === 'object' && element.node) {
-                accum += parseInt(element.node.charAt(2), 10);
-                return accum;
-            } else if (typeof element === 'string') {
-                accum += parseInt(element.charAt(2), 10);
-                console.log(accum);
+function calculateAllLengths(entries, lengths, length) {
+    if (typeof entries === 'string') {
+        length += parseInt(entries.charAt(2), 10);
+        lengths.push(length);
+        lenght = 0;
+        return lengths;
+    } else if (typeof entries === 'object') {
+        /* eslint guard-for-in: "off", no-restricted-syntax: "off" */
+        for (const key in entries) {
+            if (key !== 'node') {
+                length += parseInt(key.charAt(2), 10);
             }
-        }, 0);
-    }, this);
-    return length;
+            lenghts = calculateAllLengths(entries[key], lengths, length);
+            length = 0;
+        }
+    }
+
+    return lengths;
+}
+
+function getShortestLength(lengths) {
+    return Math.min(...lengths);
 }
 
 (async () => {
@@ -59,9 +69,10 @@ function getShortestLength(entries) {
         const startChar = routeRequirements.startingPoint;
         const endChar = routeRequirements.endingPoint;
         const entries = gatherNodes(startChar, endChar, graph);
-        const length = getShortestLength(entries);
+        const lengths = calculateAllLengths(entries, [], 0);
+        const shortestLength = getShortestLength(lengths);
 
-        libWritter.writeMessage(`Shortest route from ${task}: ${length}`);
+        libWritter.writeMessage(`Shortest route from ${task}: ${shortestLength}`);
     } catch (error) {
         libWritter.writeError(error);
     }
