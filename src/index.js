@@ -13,9 +13,6 @@ const constants = require('./utils/constants');
         const TASKS = await fs.readJson(path.join(__dirname, '../config/tasks.json'));
         const graph = await libArgs.getGraph(process.argv, 2);
 
-        // libProcessor.startChildProcess(constants.lengthCheckExecutor, 'ac', graph);
-        // libProcessor.startChildProcess(constants.lengthCheckExecutor, 'bb', graph);
-
         asynclib.eachLimit(TASKS, NUMBER_OF_CPUS, (task, callback) => {
             if (task.type === constants.distanceType) {
                 libProcessor.startChildProcess(constants.distanceExecutor, task.task, graph);
@@ -23,6 +20,8 @@ const constants = require('./utils/constants');
                 libProcessor.startChildProcess(constants.hopCheckExecutor, task.task, graph);
             } else if (task.type === constants.lengthCheckType) {
                 libProcessor.startChildProcess(constants.lengthCheckExecutor, task.task, graph);
+            } else {
+                libProcessor.startChildProcess(constants.numberOfRoutesExecutor, task.task, graph);
             }
             callback();
         }, (err) => {

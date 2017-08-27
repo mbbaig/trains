@@ -1,4 +1,1 @@
-.vagrant/
 node_modules
-.idea/
-*.marko.js
